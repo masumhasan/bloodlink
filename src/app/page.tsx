@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { AuthForm } from "@/components/auth-form";
 import { Loader2 } from "lucide-react";
+import { useLanguage } from "@/context/language-context";
 
 export default function Home() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (!isLoading && user) {
@@ -46,10 +48,9 @@ export default function Home() {
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-lg">
-              &ldquo;A single pint can save three lives, a single gesture can
-              create a million smiles.&rdquo;
+              {t('quote')}
             </p>
-            <footer className="text-sm">Anonymous Donor</footer>
+            <footer className="text-sm">{t('quote_author')}</footer>
           </blockquote>
         </div>
       </div>

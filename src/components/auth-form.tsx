@@ -20,6 +20,7 @@ import {
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/context/language-context";
 
 
 function EmailPasswordAuth() {
@@ -28,6 +29,7 @@ function EmailPasswordAuth() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [emailForReset, setEmailForReset] = React.useState('');
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleEmailPasswordSubmit = async (event: React.SyntheticEvent) => {
     event.preventDefault();
@@ -42,7 +44,7 @@ function EmailPasswordAuth() {
     try {
       if (view === 'login') {
         await signInWithEmailAndPassword(auth, email, password);
-        toast({ title: "Login successful!" });
+        toast({ title: t('login_successful_toast') });
         router.push("/dashboard");
       } else { // signup
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -52,13 +54,13 @@ function EmailPasswordAuth() {
           email: user.email,
           name: user.email?.split('@')[0] || 'New User', // default name
         });
-        toast({ title: "Sign up successful!" });
+        toast({ title: t('signup_successful_toast') });
         router.push("/dashboard");
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Authentication Failed",
+        title: t('auth_failed_toast_title'),
         description: error.message,
       });
     } finally {
@@ -72,14 +74,14 @@ function EmailPasswordAuth() {
     try {
       await sendPasswordResetEmail(auth, emailForReset);
       toast({
-        title: "Password Reset Email Sent",
-        description: `If an account exists for ${emailForReset}, a password reset link has been sent.`,
+        title: t('pw_reset_sent_toast_title'),
+        description: t('pw_reset_sent_toast_desc', { email: emailForReset }),
       });
       setView('login');
     } catch (error: any) {
        toast({
         variant: "destructive",
-        title: "Error",
+        title: t('error_toast_title'),
         description: error.message,
       });
     } finally {
@@ -94,7 +96,7 @@ function EmailPasswordAuth() {
        <form onSubmit={handlePasswordResetSubmit}>
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="reset-email">Email</Label>
+              <Label htmlFor="reset-email">{t('email_label')}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -116,11 +118,11 @@ function EmailPasswordAuth() {
               {isLoading && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Send Reset Link
+              {t('send_reset_link_btn')}
             </Button>
             <Button variant="link" size="sm" onClick={() => setView('login')}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Login
+                {t('back_to_login_btn')}
             </Button>
           </div>
        </form>
@@ -131,7 +133,7 @@ function EmailPasswordAuth() {
      <form onSubmit={handleEmailPasswordSubmit}>
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t('email_label')}</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -149,14 +151,14 @@ function EmailPasswordAuth() {
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('password_label')}</Label>
                {view === 'login' && (
                   <button
                     type="button"
                     onClick={() => setView('forgot-password')}
                     className="text-sm font-medium text-primary underline-offset-4 hover:underline"
                   >
-                    Forgot password?
+                    {t('forgot_password_link')}
                   </button>
                 )}
             </div>
@@ -169,7 +171,7 @@ function EmailPasswordAuth() {
             {isLoading && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}
-            {view === 'login' ? "Login" : "Sign Up"}
+            {view === 'login' ? t('login_btn') : t('signup_btn')}
           </Button>
            <p className="px-8 text-center text-sm text-muted-foreground">
             <button
@@ -178,8 +180,8 @@ function EmailPasswordAuth() {
               className="underline underline-offset-4 hover:text-primary"
             >
               {view === 'login'
-                ? "Don't have an account? Sign Up"
-                : "Already have an account? Login"}
+                ? t('dont_have_account_link')
+                : t('already_have_account_link')}
             </button>
           </p>
         </div>
@@ -196,16 +198,17 @@ function PhoneAuth() {
   const [phoneNumber, setPhoneNumber] = React.useState("");
   const [confirmationResult, setConfirmationResult] = React.useState<any>(null);
   const recaptchaButtonRef = React.useRef<HTMLButtonElement>(null);
+  const { t } = useLanguage();
 
   React.useEffect(() => {
     if (typeof window !== "undefined" && recaptchaButtonRef.current) {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaButtonRef.current, {
-        'size': 'invisible',
-        'callback': (response: any) => {
-          // reCAPTCHA solved, allow signInWithPhoneNumber.
-        }
-      });
-    }
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaButtonRef.current, {
+          'size': 'invisible',
+          'callback': (response: any) => {
+            // reCAPTCHA solved, allow signInWithPhoneNumber.
+          }
+        });
+      }
   }, []);
 
   const handlePhoneSubmit = async (event: React.SyntheticEvent) => {
@@ -217,11 +220,11 @@ function PhoneAuth() {
       const result = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
       setConfirmationResult(result);
       setStep("otp");
-      toast({ title: "OTP Sent!", description: `An OTP has been sent to ${phoneNumber}` });
+      toast({ title: t('otp_sent_toast_title'), description: t('otp_sent_toast_desc', {phoneNumber}) });
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Failed to send OTP",
+        title: t('otp_failed_toast_title'),
         description: error.message,
       });
     } finally {
@@ -244,12 +247,12 @@ function PhoneAuth() {
         name: `User ${user.uid.substring(0, 5)}`,
       }, { merge: true });
       
-      toast({ title: "Login Successful!" });
+      toast({ title: t('login_successful_toast') });
       router.push("/dashboard");
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Login Failed",
+        title: t('login_failed_toast_title'),
         description: error.message,
       });
     } finally {
@@ -264,9 +267,9 @@ function PhoneAuth() {
           <div className="grid gap-4">
             <div className="grid gap-2">
               <p className="text-sm text-muted-foreground text-center">
-                Enter your phone number to login or create an account
+                {t('phone_auth_prompt')}
               </p>
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">{t('phone_number_label')}</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -285,7 +288,7 @@ function PhoneAuth() {
               {isLoading && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Send OTP
+              {t('send_otp_btn')}
             </Button>
           </div>
         </form>
@@ -293,10 +296,10 @@ function PhoneAuth() {
         <form onSubmit={handleOtpSubmit}>
           <div className="grid gap-4">
             <p className="text-sm text-muted-foreground text-center">
-              We've sent a One-Time Password to your phone
+              {t('otp_prompt')}
             </p>
             <div className="grid gap-2">
-              <Label htmlFor="otp">One-Time Password</Label>
+              <Label htmlFor="otp">{t('otp_label')}</Label>
                <div className="relative">
                 <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input id="otp" name="otp" type="text" required placeholder="_ _ _ _ _ _" className="pl-10 tracking-[0.5em] text-center"/>
@@ -306,7 +309,7 @@ function PhoneAuth() {
               {isLoading && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Verify & Login
+              {t('verify_and_login_btn')}
             </Button>
           </div>
         </form>
@@ -317,17 +320,18 @@ function PhoneAuth() {
 
 
 export function AuthForm() {
+  const { t } = useLanguage();
   return (
     <>
       <div className="flex flex-col space-y-2 text-center mb-6">
         <h1 className="text-2xl font-semibold font-headline tracking-tight">
-          Welcome to BloodLink
+          {t('welcome_message')}
         </h1>
       </div>
       <Tabs defaultValue="email" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="email">Email</TabsTrigger>
-          <TabsTrigger value="phone">Phone</TabsTrigger>
+          <TabsTrigger value="email">{t('email_tab')}</TabsTrigger>
+          <TabsTrigger value="phone">{t('phone_tab')}</TabsTrigger>
         </TabsList>
         <TabsContent value="email" className="mt-6">
            <EmailPasswordAuth />

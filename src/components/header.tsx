@@ -6,10 +6,13 @@ import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth-context";
+import { LanguageToggle } from "./language-toggle";
+import { useLanguage } from "@/context/language-context";
 
 export function Header() {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const { t } = useLanguage();
 
   const handleLogout = () => {
     logout();
@@ -33,7 +36,7 @@ export function Header() {
               href="/dashboard"
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
-              Dashboard
+              {t('dashboard_link')}
             </Link>
           )}
         </nav>
@@ -41,13 +44,14 @@ export function Header() {
           {user ? (
             <Button variant="outline" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
-              Logout
+              {t('logout_btn')}
             </Button>
           ) : (
             <Button asChild>
-              <Link href="/">Join Now</Link>
+              <Link href="/">{t('join_now_btn')}</Link>
             </Button>
           )}
+          <LanguageToggle />
           <ThemeToggle />
         </div>
       </div>

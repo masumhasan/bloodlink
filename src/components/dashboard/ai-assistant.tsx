@@ -27,6 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Textarea } from "../ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/context/language-context";
 
 type Message = {
   role: "user" | "bot";
@@ -38,6 +39,7 @@ function FAQChatbot() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -62,7 +64,7 @@ function FAQChatbot() {
     } catch (error) {
       const errorMessage: Message = {
         role: "bot",
-        content: "Sorry, I couldn't process your request. Please try again.",
+        content: t('ai_error_message'),
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
@@ -118,7 +120,7 @@ function FAQChatbot() {
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about blood donation..."
+          placeholder={t('faq_chatbot_placeholder')}
           onKeyDown={(e) => e.key === "Enter" && !isLoading && handleSend()}
           disabled={isLoading}
         />
@@ -140,6 +142,7 @@ function IntelligentMatcher() {
     const [results, setResults] = useState<IntelligentDonorMatchesOutput | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
+    const { t } = useLanguage();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -154,8 +157,8 @@ function IntelligentMatcher() {
         } catch (error) {
             toast({
                 variant: "destructive",
-                title: "AI Error",
-                description: "Failed to find donor matches. Please try again."
+                title: t('ai_error_toast_title'),
+                description: t('ai_matcher_error_toast_desc')
             })
         } finally {
             setIsLoading(false);
@@ -174,12 +177,12 @@ function IntelligentMatcher() {
     return (
       <div className="grid md:grid-cols-2 gap-8">
         <form onSubmit={handleSubmit} className="space-y-4">
-            <h3 className="text-lg font-semibold font-headline">Patient Details</h3>
+            <h3 className="text-lg font-semibold font-headline">{t('patient_details_title')}</h3>
             <div>
-                <Label htmlFor="patientBloodType">Blood Type</Label>
+                <Label htmlFor="patientBloodType">{t('blood_type_label')}</Label>
                 <Select name="patientBloodType" onValueChange={handleSelectChange}>
                     <SelectTrigger>
-                        <SelectValue placeholder="Select Blood Type" />
+                        <SelectValue placeholder={t('select_blood_type_placeholder')} />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="A+">A+</SelectItem>
@@ -194,24 +197,24 @@ function IntelligentMatcher() {
                 </Select>
             </div>
              <div>
-                <Label htmlFor="patientCity">City</Label>
-                <Input name="patientCity" value={formState.patientCity} onChange={handleChange} placeholder="e.g., New York"/>
+                <Label htmlFor="patientCity">{t('city_label')}</Label>
+                <Input name="patientCity" value={formState.patientCity} onChange={handleChange} placeholder={t('city_placeholder')}/>
             </div>
              <div>
-                <Label htmlFor="searchRadiusKm">Search Radius (km)</Label>
+                <Label htmlFor="searchRadiusKm">{t('search_radius_label')}</Label>
                 <Input name="searchRadiusKm" type="number" value={formState.searchRadiusKm} onChange={handleChange}/>
             </div>
              <div>
-                <Label htmlFor="patientNeeds">Specific Needs</Label>
-                <Textarea name="patientNeeds" value={formState.patientNeeds} onChange={handleChange} placeholder="e.g., CMV negative, recent travel history, etc."/>
+                <Label htmlFor="patientNeeds">{t('specific_needs_label')}</Label>
+                <Textarea name="patientNeeds" value={formState.patientNeeds} onChange={handleChange} placeholder={t('specific_needs_placeholder')}/>
             </div>
             <Button type="submit" disabled={isLoading} className="w-full">
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Sparkles className="mr-2 h-4 w-4"/>}
-                Find Intelligent Matches
+                {t('find_intelligent_matches_btn')}
             </Button>
         </form>
         <div className="h-[600px]">
-            <h3 className="text-lg font-semibold font-headline mb-4">Suggested Donors</h3>
+            <h3 className="text-lg font-semibold font-headline mb-4">{t('suggested_donors_title')}</h3>
             <ScrollArea className="h-full border rounded-md">
             {isLoading && !results && (
                 <div className="flex items-center justify-center h-full">
@@ -224,10 +227,10 @@ function IntelligentMatcher() {
                      <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Donor</TableHead>
-                                <TableHead>Blood Type</TableHead>
-                                <TableHead>Distance</TableHead>
-                                <TableHead>Score</TableHead>
+                                <TableHead>{t('donor_table_header')}</TableHead>
+                                <TableHead>{t('blood_type_table_header')}</TableHead>
+                                <TableHead>{t('distance_table_header')}</TableHead>
+                                <TableHead>{t('score_table_header')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -244,7 +247,7 @@ function IntelligentMatcher() {
                 </div>
             ) : !isLoading && (
                  <div className="flex items-center justify-center h-full text-center text-muted-foreground">
-                    <p>Enter patient details to find AI-powered donor matches.</p>
+                    <p>{t('intelligent_matcher_prompt')}</p>
                 </div>
             )}
             </ScrollArea>
@@ -254,19 +257,20 @@ function IntelligentMatcher() {
 }
 
 export function AiAssistant() {
+  const { t } = useLanguage();
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline">AI-Powered Assistance</CardTitle>
+        <CardTitle className="font-headline">{t('ai_assistant_title')}</CardTitle>
         <CardDescription>
-          Get answers to your questions or find intelligent donor matches.
+          {t('ai_assistant_subtitle')}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="faq" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="faq">FAQ Chatbot</TabsTrigger>
-            <TabsTrigger value="matcher">Intelligent Matcher</TabsTrigger>
+            <TabsTrigger value="faq">{t('faq_chatbot_tab')}</TabsTrigger>
+            <TabsTrigger value="matcher">{t('intelligent_matcher_tab')}</TabsTrigger>
           </TabsList>
           <TabsContent value="faq" className="mt-6">
             <FAQChatbot />

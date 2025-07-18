@@ -23,6 +23,7 @@ import { Droplets, Mail, MapPin, Phone, Search, Loader2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { db } from "@/lib/firebase";
 import { collection, onSnapshot, query } from "firebase/firestore";
+import { useLanguage } from "@/context/language-context";
 
 interface Donor {
     uid: string;
@@ -47,6 +48,7 @@ export function FindDonors() {
   const [city, setCity] = useState("");
   const [filteredDonors, setFilteredDonors] = useState<Donor[]>([]);
   const [revealed, setRevealed] = useState<RevealedState>({});
+  const { t } = useLanguage();
 
   useEffect(() => {
     const q = query(collection(db, "users"));
@@ -101,9 +103,9 @@ export function FindDonors() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline">Find a Donor</CardTitle>
+        <CardTitle className="font-headline">{t('find_donor_title')}</CardTitle>
         <CardDescription>
-          Search for available blood donors in your area.
+          {t('find_donor_subtitle')}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -112,10 +114,10 @@ export function FindDonors() {
              <Droplets className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Select onValueChange={setBloodType} value={bloodType}>
               <SelectTrigger className="pl-10">
-                <SelectValue placeholder="Select Blood Type" />
+                <SelectValue placeholder={t('select_blood_type_placeholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Blood Types</SelectItem>
+                <SelectItem value="all">{t('all_blood_types')}</SelectItem>
                 <SelectItem value="A+">A+</SelectItem>
                 <SelectItem value="A-">A-</SelectItem>
                 <SelectItem value="B+">B+</SelectItem>
@@ -130,7 +132,7 @@ export function FindDonors() {
           <div className="relative flex-grow">
              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
              <Input 
-                placeholder="Enter City" 
+                placeholder={t('enter_city_placeholder')}
                 className="pl-10"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
@@ -138,7 +140,7 @@ export function FindDonors() {
           </div>
           <Button className="flex-shrink-0" onClick={handleSearch}>
             <Search className="mr-2 h-4 w-4" />
-            Search
+            {t('search_btn')}
           </Button>
         </div>
 
@@ -146,11 +148,11 @@ export function FindDonors() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Blood Type</TableHead>
-                <TableHead>City</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead className="text-right">Contact</TableHead>
+                <TableHead>{t('name_table_header')}</TableHead>
+                <TableHead>{t('blood_type_table_header')}</TableHead>
+                <TableHead>{t('city_table_header')}</TableHead>
+                <TableHead>{t('email_table_header')}</TableHead>
+                <TableHead className="text-right">{t('contact_table_header')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -163,7 +165,7 @@ export function FindDonors() {
               ) : filteredDonors.length === 0 ? (
                  <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center">
-                    No donors found.
+                    {t('no_donors_found')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -181,7 +183,7 @@ export function FindDonors() {
                         </span>
                       ) : (
                         <Button size="sm" variant="outline" onClick={() => handleReveal(donor.uid, 'email')} disabled={!donor.emailVisible}>
-                          {donor.emailVisible ? 'Reveal Email' : 'Not Visible'}
+                          {donor.emailVisible ? t('reveal_email_btn') : t('not_visible_btn')}
                         </Button>
                       )}
                     </TableCell>
@@ -192,7 +194,7 @@ export function FindDonors() {
                         </span>
                       ) : (
                          <Button size="sm" onClick={() => handleReveal(donor.uid, 'phone')} disabled={!donor.mobileVisible || !donor.phone}>
-                          {donor.mobileVisible && donor.phone ? 'Reveal Contact' : 'Not Visible'}
+                          {donor.mobileVisible && donor.phone ? t('reveal_contact_btn') : t('not_visible_btn')}
                         </Button>
                       )}
                     </TableCell>

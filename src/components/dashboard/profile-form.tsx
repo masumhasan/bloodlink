@@ -69,6 +69,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/context/language-context";
 
 
 const profileFormSchema = z.object({
@@ -92,6 +93,7 @@ export function ProfileForm() {
   const { user, userProfile, deleteUserAccount } = useAuth();
   const [location, setLocation] = React.useState<string | null>(null);
   const router = useRouter();
+  const { t } = useLanguage();
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -130,8 +132,8 @@ export function ProfileForm() {
     if (!user) {
       toast({
         variant: "destructive",
-        title: "Not Authenticated",
-        description: "You must be logged in to update your profile.",
+        title: t('not_authenticated_toast_title'),
+        description: t('not_authenticated_toast_desc'),
       });
       return;
     }
@@ -144,15 +146,15 @@ export function ProfileForm() {
       }
       await setDoc(userDocRef, profileData, { merge: true });
       toast({
-        title: "Profile Updated!",
-        description: "Your information has been saved successfully.",
+        title: t('profile_updated_toast_title'),
+        description: t('profile_updated_toast_desc'),
       });
     } catch (error) {
       console.error("Error updating profile: ", error);
       toast({
         variant: "destructive",
-        title: "Update Failed",
-        description: "There was a problem saving your profile.",
+        title: t('update_failed_toast_title'),
+        description: t('update_failed_toast_desc'),
       });
     }
   }
@@ -169,8 +171,8 @@ export function ProfileForm() {
         () => {
           toast({
             variant: "destructive",
-            title: "Geolocation Error",
-            description: "Could not retrieve your location.",
+            title: t('geolocation_error_toast_title'),
+            description: t('geolocation_error_toast_desc'),
           });
         }
       );
@@ -181,15 +183,15 @@ export function ProfileForm() {
     try {
       await deleteUserAccount();
       toast({
-        title: "Account Deleted",
-        description: "Your account has been successfully deleted.",
+        title: t('account_deleted_toast_title'),
+        description: t('account_deleted_toast_desc'),
       });
       router.push("/");
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Deletion Failed",
-        description: error.message || "There was a problem deleting your account.",
+        title: t('delete_failed_toast_title'),
+        description: error.message || t('delete_failed_toast_desc'),
       });
     }
   };
@@ -197,9 +199,9 @@ export function ProfileForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline">Donor Profile</CardTitle>
+        <CardTitle className="font-headline">{t('donor_profile_title')}</CardTitle>
         <CardDescription>
-          Keep your information up-to-date to help others.
+          {t('donor_profile_subtitle')}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -211,7 +213,7 @@ export function ProfileForm() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Full Name</FormLabel>
+                    <FormLabel>{t('full_name_label')}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -227,7 +229,7 @@ export function ProfileForm() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t('email_label')}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -248,7 +250,7 @@ export function ProfileForm() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Contact Number</FormLabel>
+                    <FormLabel>{t('contact_number_label')}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -266,7 +268,7 @@ export function ProfileForm() {
                   <FormItem className="space-y-3">
                     <FormLabel className="flex items-center">
                       <Venus className="mr-2 h-4 w-4 text-muted-foreground" />
-                      Gender
+                      {t('gender_label')}
                     </FormLabel>
                     <FormControl>
                       <RadioGroup
@@ -278,19 +280,19 @@ export function ProfileForm() {
                           <FormControl>
                             <RadioGroupItem value="male" />
                           </FormControl>
-                          <FormLabel className="font-normal">Male</FormLabel>
+                          <FormLabel className="font-normal">{t('male')}</FormLabel>
                         </FormItem>
                         <FormItem className="flex items-center space-x-2 space-y-0">
                           <FormControl>
                             <RadioGroupItem value="female" />
                           </FormControl>
-                          <FormLabel className="font-normal">Female</FormLabel>
+                          <FormLabel className="font-normal">{t('female')}</FormLabel>
                         </FormItem>
                         <FormItem className="flex items-center space-x-2 space-y-0">
                           <FormControl>
                             <RadioGroupItem value="other" />
                           </FormControl>
-                          <FormLabel className="font-normal">Other</FormLabel>
+                          <FormLabel className="font-normal">{t('other')}</FormLabel>
                         </FormItem>
                       </RadioGroup>
                     </FormControl>
@@ -305,7 +307,7 @@ export function ProfileForm() {
                   <FormItem>
                     <FormLabel className="flex items-center">
                       <Droplets className="mr-2 h-4 w-4 text-muted-foreground" />
-                      Blood Type
+                      {t('blood_type_label')}
                     </FormLabel>
                     <Select
                       onValueChange={field.onChange}
@@ -313,7 +315,7 @@ export function ProfileForm() {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select your blood group" />
+                          <SelectValue placeholder={t('select_blood_group_placeholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -336,7 +338,7 @@ export function ProfileForm() {
                 name="lastDonationDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Last Donation Date</FormLabel>
+                    <FormLabel>{t('last_donation_date_label')}</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -350,7 +352,7 @@ export function ProfileForm() {
                             {field.value ? (
                               format(field.value, "PPP")
                             ) : (
-                              <span>Pick a date</span>
+                              <span>{t('pick_a_date')}</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -377,11 +379,11 @@ export function ProfileForm() {
                 name="city"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>City</FormLabel>
+                    <FormLabel>{t('city_label')}</FormLabel>
                      <FormControl>
                       <div className="relative">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input placeholder="New York" {...field} className="pl-10"/>
+                        <Input placeholder={t('city_placeholder')} {...field} className="pl-10"/>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -396,11 +398,10 @@ export function ProfileForm() {
                     <div className="space-y-0.5">
                       <FormLabel className="text-base flex items-center">
                         <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
-                        Mobile Number Visibility
+                        {t('mobile_visibility_label')}
                       </FormLabel>
                       <FormDescription>
-                        Allow others to see your mobile number when they search
-                        for donors.
+                        {t('mobile_visibility_desc')}
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -413,49 +414,48 @@ export function ProfileForm() {
                 )}
               />
               <div className="rounded-lg border p-4 col-span-1 md:col-span-2">
-                <FormLabel>Geolocation</FormLabel>
+                <FormLabel>{t('geolocation_label')}</FormLabel>
                  <div className="flex items-center gap-4 mt-2">
                     <Button type="button" variant="outline" onClick={handleGetLocation}>
                       <LocateFixed className="mr-2 h-4 w-4" />
-                      Get My Location
+                      {t('get_my_location_btn')}
                     </Button>
                     <p className="text-sm text-muted-foreground flex-grow">
-                      {location || "Your precise location helps in emergencies."}
+                      {location || t('geolocation_desc')}
                     </p>
                   </div>
               </div>
             </div>
-            <Button type="submit">Update Profile</Button>
+            <Button type="submit">{t('update_profile_btn')}</Button>
           </form>
         </Form>
       </CardContent>
       <CardFooter className="border-t px-6 py-4 mt-8">
         <div className="flex justify-between items-center w-full">
             <div>
-                <h3 className="text-lg font-semibold text-destructive">Danger Zone</h3>
-                <p className="text-sm text-muted-foreground">This action is not reversible. Please be certain.</p>
+                <h3 className="text-lg font-semibold text-destructive">{t('danger_zone_title')}</h3>
+                <p className="text-sm text-muted-foreground">{t('danger_zone_desc')}</p>
             </div>
             <AlertDialog>
                 <AlertDialogTrigger asChild>
                     <Button variant="destructive">
                         <Trash2 className="mr-2 h-4 w-4" />
-                        Delete Account
+                        {t('delete_account_btn')}
                     </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('confirm_delete_title')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete your
-                            account and remove your data from our servers.
+                            {t('confirm_delete_desc')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{t('cancel_btn')}</AlertDialogCancel>
                         <AlertDialogAction onClick={handleDeleteAccount} className={cn(
                             "bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         )}>
-                            Delete
+                            {t('delete_btn')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
