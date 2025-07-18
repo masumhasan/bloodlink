@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -6,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Phone, KeyRound, Loader2, Mail } from "lucide-react";
+import { Phone, KeyRound, Loader2, Mail, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { auth, db } from "@/lib/firebase";
@@ -14,7 +15,8 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   RecaptchaVerifier, 
-  signInWithPhoneNumber 
+  signInWithPhoneNumber,
+  sendPasswordResetEmail
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
@@ -22,11 +24,12 @@ import { useToast } from "@/hooks/use-toast";
 
 function EmailPasswordAuth() {
   const router = useRouter();
-  const [isLoginView, setIsLoginView] = React.useState(true);
+  const [view, setView] = React.useState<'login' | 'signup' | 'forgot-password'>('login');
   const [isLoading, setIsLoading] = React.useState(false);
+  const [emailForReset, setEmailForReset] = React.useState('');
   const { toast } = useToast();
 
-  const handleSubmit = async (event: React.SyntheticEvent) => {
+  const handleEmailPasswordSubmit = async (event: React.SyntheticEvent) => {
     event.preventDefault();
     setIsLoading(true);
     const target = event.target as typeof event.target & {
@@ -37,11 +40,11 @@ function EmailPasswordAuth() {
     const password = target.password.value;
 
     try {
-      if (isLoginView) {
+      if (view === 'login') {
         await signInWithEmailAndPassword(auth, email, password);
         toast({ title: "Login successful!" });
         router.push("/dashboard");
-      } else {
+      } else { // signup
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         await setDoc(doc(db, "users", user.uid), {
@@ -63,10 +66,69 @@ function EmailPasswordAuth() {
     }
   };
 
-  const toggleView = () => setIsLoginView(!isLoginView);
+  const handlePasswordResetSubmit = async (event: React.SyntheticEvent) => {
+    event.preventDefault();
+    setIsLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, emailForReset);
+      toast({
+        title: "Password Reset Email Sent",
+        description: `If an account exists for ${emailForReset}, a password reset link has been sent.`,
+      });
+      setView('login');
+    } catch (error: any) {
+       toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleView = () => setView(view === 'login' ? 'signup' : 'login');
+
+  if (view === 'forgot-password') {
+    return (
+       <form onSubmit={handlePasswordResetSubmit}>
+          <div className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="reset-email">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="reset-email"
+                  name="reset-email"
+                  placeholder="name@example.com"
+                  type="email"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  autoCorrect="off"
+                  required
+                  className="pl-10"
+                  value={emailForReset}
+                  onChange={(e) => setEmailForReset(e.target.value)}
+                />
+              </div>
+            </div>
+            <Button disabled={isLoading} className="mt-2">
+              {isLoading && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Send Reset Link
+            </Button>
+            <Button variant="link" size="sm" onClick={() => setView('login')}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Login
+            </Button>
+          </div>
+       </form>
+    )
+  }
 
   return (
-     <form onSubmit={handleSubmit}>
+     <form onSubmit={handleEmailPasswordSubmit}>
         <div className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
@@ -86,7 +148,18 @@ function EmailPasswordAuth() {
             </div>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+               {view === 'login' && (
+                  <button
+                    type="button"
+                    onClick={() => setView('forgot-password')}
+                    className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                )}
+            </div>
             <div className="relative">
                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                <Input id="password" name="password" type="password" required className="pl-10"/>
@@ -96,7 +169,7 @@ function EmailPasswordAuth() {
             {isLoading && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}
-            {isLoginView ? "Login" : "Sign Up"}
+            {view === 'login' ? "Login" : "Sign Up"}
           </Button>
            <p className="px-8 text-center text-sm text-muted-foreground">
             <button
@@ -104,7 +177,7 @@ function EmailPasswordAuth() {
               onClick={toggleView}
               className="underline underline-offset-4 hover:text-primary"
             >
-              {isLoginView
+              {view === 'login'
                 ? "Don't have an account? Sign Up"
                 : "Already have an account? Login"}
             </button>
