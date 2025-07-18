@@ -195,11 +195,11 @@ function PhoneAuth() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [phoneNumber, setPhoneNumber] = React.useState("");
   const [confirmationResult, setConfirmationResult] = React.useState<any>(null);
+  const recaptchaButtonRef = React.useRef<HTMLButtonElement>(null);
 
   React.useEffect(() => {
-    // Make sure to only run this on the client
-    if (typeof window !== "undefined") {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+    if (typeof window !== "undefined" && recaptchaButtonRef.current) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaButtonRef.current, {
         'size': 'invisible',
         'callback': (response: any) => {
           // reCAPTCHA solved, allow signInWithPhoneNumber.
@@ -281,7 +281,7 @@ function PhoneAuth() {
                 />
               </div>
             </div>
-            <Button disabled={isLoading}>
+            <Button ref={recaptchaButtonRef} disabled={isLoading}>
               {isLoading && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
@@ -311,7 +311,6 @@ function PhoneAuth() {
           </div>
         </form>
       )}
-      <div id="recaptcha-container"></div>
     </>
   );
 }
