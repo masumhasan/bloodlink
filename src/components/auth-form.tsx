@@ -211,16 +211,13 @@ function PhoneAuth() {
   const handlePhoneSubmit = async (event: React.SyntheticEvent) => {
     event.preventDefault();
     setIsLoading(true);
-    const target = event.target as typeof event.target & { phone: { value: string } };
-    const phone = target.phone.value;
-    setPhoneNumber(phone);
     
     try {
       const appVerifier = window.recaptchaVerifier;
-      const result = await signInWithPhoneNumber(auth, phone, appVerifier);
+      const result = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
       setConfirmationResult(result);
       setStep("otp");
-      toast({ title: "OTP Sent!", description: `An OTP has been sent to ${phone}` });
+      toast({ title: "OTP Sent!", description: `An OTP has been sent to ${phoneNumber}` });
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -279,6 +276,8 @@ function PhoneAuth() {
                   type="tel"
                   required
                   className="pl-10"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
                 />
               </div>
             </div>
